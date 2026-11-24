@@ -1,0 +1,34 @@
+project_id = "votamais"
+
+[api]
+enabled = true
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+enable_signup = false
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["https://*.vercel.app/**"]
+
+[functions.submit-vote]
+verify_jwt = false
+[functions.subscribe-lead]
+verify_jwt = false
+[functions.confirm-subscription]
+verify_jwt = false
+[functions.unsubscribe]
+verify_jwt = false
+[functions.queue-campaign]
+verify_jwt = true
+[functions.process-email-queue]
+verify_jwt = false
+[functions.send-test-email]
+verify_jwt = true
+[functions.admin-unsubscribe]
+verify_jwt = true
+[functions.process-automations]
+verify_jwt = false
+[functions.resend-webhook]
+verify_jwt = false
