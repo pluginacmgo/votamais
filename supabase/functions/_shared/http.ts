@@ -1,12 +1,29 @@
-export const corsHeaders = {
-  'Access-Control-Allow-Origin': Deno.env.get('APP_URL') ?? 'http://localhost:5173',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Vary': 'Origin',
+const configuredOrigins = [
+  Deno.env.get('APP_URL'),
+  ...(Deno.env.get('CORS_ALLOWED_ORIGINS') ?? '').split(','),
+  'https://votamais-murex.vercel.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+].flatMap((value) => {
+  if (!value?.trim()) return []
+  try { return [new URL(value.trim()).origin] } catch { return [] }
+})
+const allowedOrigins = new Set(configuredOrigins)
+
+export function corsHeadersFor(req?: Request) {
+  const origin = req?.headers.get('origin') ?? ''
+  return {
+    ...(allowedOrigins.has(origin) ? { 'Access-Control-Allow-Origin': origin } : {}),
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Vary': 'Origin',
+  }
 }
 
-export function json(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } })
+export const corsHeaders = corsHeadersFor()
+
+export function json(body: unknown, status = 200, req?: Request) {
+  return new Response(JSON.stringify(body), { status, headers: { ...corsHeadersFor(req), 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' } })
 }
 
 export async function verifyTurnstile(token: unknown, ip: string | null): Promise<boolean> {
